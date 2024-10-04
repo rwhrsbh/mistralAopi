@@ -136,71 +136,34 @@ The main thing is not to whine, do not write banal and do not try to write adver
 
 
 
-Analyze the text according to the following criteria:
-1. To what extent is flirting used? (Score from 0 to 10).
-2. Is there humor (Yes/No).
-3. Are there personalized details/live details which shows her personality really clear? (Yes/No)
-4. Is the letter written in a positive tone? (Yes/No)
-5. Is there Uppercase on sentences? (Yes/No)
-6. Suggestions for improving flirting, humor, or personalization.
-7. Example of lines which could be changed to make it feels less bot-written and more like a real human would write.
+Analyze the text according to the following criteria do not output weight:
+1. To what extent is flirting used? (Score from 0 to 10). 
+2. Is there humor (Yes/No). Weight:5
+3. Are there personalized details/live details which shows her personality really clear? (Yes/No) 
+4. Is the letter written in a positive tone? (Yes/No) 
+5. Is there Uppercase on sentences? (Yes/No) 
+6. Is it AI generated? (Yes/No) 
+7. Suggestions for improving flirting, humor, or personalization.
+
+
+
 
 Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
 
-After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. like if there is no, then the result score should be at least -35 extra. you decide if it's personalized or no by the example of EXPERIENCED EMPLOYEE which is 100% personalized and if you feel like users letter will be less than 70% from example, then it's NO
-
+After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. like if there is no, then the result score which user gained should be 20 less. you decide if it's personalized or no by the example of EXPERIENCED EMPLOYEE which is 100% personalized and if you feel like users letter will be less than 70% from example, then it's NO
+If it's Ai generated and you detected it, you should deduct 30 from users score
+You should calculate final score out of 100 using weights without deduction 
+Weight
+Flirting (max. 10 points) → (30 / 10) * result which user got out of 10
+Humor → 5 (if yes), 0 (if no)
+Personalization → 30 (if yes), 0 (if no)
+Positivity → 5 (if yes), 0 (if no)
+Upper case → 5 (if “yes”), 0 (if “no”)
+AI → -30 (if “yes”), 0 (if “no”)
+and only then YOU SHOULD deduct from the final score if THERE AI OR LACK OF PERSONALITY DETECTED
+You should output result score as rounded amount/100  example 20/100
 
 `;
-
-      function detectAI(text) {
-        const features = {
-          averageSentenceLength:
-            text
-              .split(/[.!?]+/)
-              .reduce((sum, sentence) => sum + sentence.split(" ").length, 0) /
-            text.split(/[.!?]+/).length,
-          uniqueWordRatio:
-            new Set(text.toLowerCase().match(/\b\w+\b/g)).size /
-            text.match(/\b\w+\b/g).length,
-          punctuationRatio:
-            (text.match(/[.,;:!?]/g) || []).length / text.length,
-          capitalLetterRatio: (text.match(/[A-Z]/g) || []).length / text.length,
-          repeatedPhrases: (text.match(/\b(\w+\s+\w+)\b.*\b\1\b/g) || [])
-            .length,
-        };
-
-        const weights = {
-          averageSentenceLength: 0.2,
-          uniqueWordRatio: 0.3,
-          punctuationRatio: 0.1,
-          capitalLetterRatio: 0.1,
-          repeatedPhrases: 0.3,
-        };
-
-        const normalizedFeatures = {
-          averageSentenceLength:
-            features.averageSentenceLength > 20
-              ? 1
-              : features.averageSentenceLength / 20,
-          uniqueWordRatio: features.uniqueWordRatio,
-          punctuationRatio:
-            features.punctuationRatio > 0.1
-              ? 1
-              : features.punctuationRatio * 10,
-          capitalLetterRatio:
-            features.capitalLetterRatio > 0.1
-              ? 1
-              : features.capitalLetterRatio * 10,
-          repeatedPhrases:
-            features.repeatedPhrases > 5 ? 1 : features.repeatedPhrases / 5,
-        };
-
-        const aiScore = Object.keys(weights).reduce((score, feature) => {
-          return score + normalizedFeatures[feature] * weights[feature];
-        }, 0);
-
-        return aiScore * 100;
-      }
 
       async function analyzeText() {
         const inputText = document.getElementById("inputText").value;
@@ -222,10 +185,6 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
         resultDiv.innerHTML = "Analyzing...";
 
         try {
-          // Local AI Content Detection
-          const aiScore = detectAI(inputText);
-          const humanScore = 100 - aiScore;
-
           // Mistral API Analysis
           const mistralResponse = await fetch(MISTRAL_API_URL, {
             method: "POST",
@@ -249,30 +208,28 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
           const mistralData = await mistralResponse.json();
           const analysis = mistralData.choices[0].message.content;
 
-          const scoreMatch = analysis.match(
-            /(?:Total Score|Overall Score|Score)?\s*:?\s*(\d+)\/100/
-          );
-          const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+          const scoreMatchAll = [
+            ...analysis.matchAll(
+              /(?:Final Score|Total Score|Overall Score|Score)?\s*:?\s*(\d+)\/100/g
+            ),
+          ];
+          const score = scoreMatchAll.length
+            ? parseInt(scoreMatchAll[scoreMatchAll.length - 1][1])
+            : 0;
 
-          const analysisHtml = marked.parse(analysis);
+          let resultHtml = marked.parse(analysis);
 
-          let result = `<p><strong>AI Content Detection:</strong> ${humanScore.toFixed(
-            2
-          )}% human-written (${aiScore.toFixed(
-            2
-          )}% AI-generated probability)</p>`;
-          result += `<p><em>Note: This is a simple heuristic estimate and may not be as accurate as specialized AI detection services.</em></p>`;
-          result += analysisHtml;
-
-          if (score > 60) {
-            preMessage =
-              "<p><strong>Overall result:</strong> Good! The text meets most of the criteria.</p>";
+          if (score > 75) {
+            resultHtml =
+              `<p><strong>Overall result: ${score}%</strong> Good! The text meets most of the criteria.</p>` +
+              resultHtml;
           } else {
-            preMessage =
-              "<p><strong>Overall result:</strong> Improvement required. Note suggestions for improvement.</p>";
+            resultHtml =
+              `<p><strong>Overall result: ${score}%</strong> Improvement required. Note suggestions for improvement.</p>` +
+              resultHtml;
           }
 
-          resultDiv.innerHTML = preMessage + result;
+          resultDiv.innerHTML = resultHtml;
         } catch (error) {
           resultDiv.innerHTML = `There was an error in the analysis: ${error.message}`;
         }
