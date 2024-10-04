@@ -210,11 +210,11 @@ You should output result score as rounded amount/100  example 20/100
 
           const scoreMatchAll = [
             ...analysis.matchAll(
-              /(?:Final Score|Total Score|Overall Score|Score)?\s*:?\s*(\d+)\/100/g
+              /(?:Final Score|Total Score|Overall Score|Score)?\s*:?\s*(\d+(?:\.\d+)?)\/100/g
             ),
           ];
           const score = scoreMatchAll.length
-            ? parseInt(scoreMatchAll[scoreMatchAll.length - 1][1])
+            ? parseFloat(scoreMatchAll[scoreMatchAll.length - 1][1])
             : 0;
 
           let resultHtml = marked.parse(analysis);
