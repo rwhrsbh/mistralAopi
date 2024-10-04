@@ -154,10 +154,10 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
 If it's Ai generated and you detected it, you should deduct 30 from users score
 You should calculate final score out of 100 using weights without deduction 
 Weight
-Flirting (max. 10 points) → (30 / 10) * result which user got out of 10
+Flirting (max. 10 points) → (40 / 10) * result which user got out of 10
 Humor → 5 (if yes), 0 (if no)
-Personalization → 30 (if yes), 0 (if no)
-Positivity → 5 (if yes), 0 (if no)
+Personalization (max. 10 points) → (45 / 10) * result which user got out of 10
+Positivity (max. 5 points) → (5 / 10) * result which user got out of 5
 Upper case → 5 (if “yes”), 0 (if “no”)
 AI → -30 (if “yes”), 0 (if “no”)
 and only then YOU SHOULD deduct from the final score if THERE AI OR LACK OF PERSONALITY DETECTED
