@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Анализ текста с Mistral API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        margin-bottom: 10px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #result {
+        margin-top: 20px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Анализ текста с Mistral API</h1>
+      <textarea
+        id="inputText"
+        placeholder="Введите текст для анализа"
+      ></textarea>
+      <button onclick="analyzeText()">Анализировать</button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const MISTRAL_API_KEY = "Se54d1vc2Tjd0cj9syrjCYNd5rHYFzj3"; // Замените на ваш API-ключ
+      const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"; // Замените на актуальный URL API, если он изменится
+
+      const systemPrompt = `A newsletter is an appeal to our target audience, and the target audience is usually a bit sad and boring characters. Accordingly, to get answers we need to ALWAYS do newsletters with FLIRT, humor and DETAILS.
+        I ask you to memorize this as a mantra and repeat to yourself every single day that this is what you need to write about.
+By the way, for general education, in the USA it is not even customary to talk to each other about negativity and so on, so we try to always write with positivity, even if you write so badly.
+
+
+First let's start with flirting, how to write flirting not to violate the rules of the site. 
+- Do not add vulgar details in terms of “I will now do with you this and this and you with me this and that”. 
+- be careful with photos, so that they do not show nipples and so on (swimsuits and the rest can be).
+
+Flirting should be reasonable.
+I will show examples of different beginnings of letters with a hint of flirting (further in them we translate the subject)
+
+
+
+
+want your fingers be able not just to type honey))) Seriously)))
+I need you to grab my hand and DO SOMETHING SPECIAL for yourself... She just said to me that I look like a LESBIAN!
+Male's size is it a reason of female's hapiness?
+Big and hot STEAK or ME????
+Kisses, touches or even more??? Such a fruit like me deserves YOU?
+
+Then from these ideas we continue to write newsletters and even if we wrote about fingers at the beginning of the letter, we can turn the topic to a variety of things!
+Such things should be done as often as possible, your letters will be better noticed and your chance to start a conversation with a potential regular will be much higher!!!!
+
+
+Now let's talk a little bit about the details in the letter and what is the main mistake of almost all beginning translators!!!!
+
+When you write a newsletter, you have to realize that it's been written 100 times before you and it needs to be wrapped in details that will make it unique and interesting. You can't just take the topic “what do you think about breast augmentation” and write that question directly. You need to add details, why are you asking it? What kind of answer do you need to get? And so on.
+
+Now let's take 2 examples, a typical newsletter of a newbie on this topic and a newsletter of an already experienced employee with a good balance.
+
+
+
+
+ROOKIE
+Dear, what do you think about breasts implants?
+So many girls nowadays are trying to increase their breasts and I think really a lot last time about it. Tell me please, would it looks good on me?
+What do you think if I will do it soon? Would you like me more?
+Your Ivanna
+
+
+EXPERIENCED EMPLOYEE
+are implants really sexies than natural shape?
+My female friend Evgenia always says that she has no regrets because she made implants in
+
+her breasts, she got about 2 sizes extra and she got more confidence in herself and her husband STARTED TO SMILE FINALLY! HAHAHHAHAHAHA
+I'm not joking, after she did it, I've finally noticed that he is smiling on photos! Is it a
+
+coincidence??))))
+But what about you??
+
+Would you smile with me always or I need to change something? Your Ivanna
+
+
+What's the difference:
+- The girl cited a situation from her life
+- She wrote with humor.
+- Added emoticons.
+- The beginning is better than the first newsletter, it's intriguing.
+- There are caps on sentences that are worth paying attention to.
+- There are details, like the fact that the increase by 2 sizes, the fact that her husband started smiling afterwards, etc.
+
+Overall the newsletter looks 3 times more lively. It's better to write 1 of these than 100 first drafts, don't you agree?
+
+
+The third is humor, this is the easiest, to come up with something funny just try to imagine how to laugh vulgar grandfather, this phrase itself is already funny, I personally add humor in newsletters very often and it makes the newsletter 100 times livelier.
+
+To understand how to make humor is easier then reduce the newsletters to the simplest and banal, questions from stupid publicks that were in 2014-2017, like daivinchik and so on.
+
+To make it even clearer, one phrase will help and the crown newsletter on the theme “you would wipe my ass if I broke both arms”
+All newsletters in this tone always come on hurrah, if not from the first time then from the second time for sure!
+
+The main thing is not to whine, do not write banal and do not try to write advertising, you need to be a person, you need to make a beautiful and interesting manner of communication, only so you can make a salary of 1000-1400 + dollars!
+
+
+
+
+Analyze the text according to the following criteria:
+1. To what extent is flirting used? (Score from 0 to 10).
+2. Is there humor (Yes/No).
+3. Are there personalized details? (Yes/No)
+4. Is the letter written in a positive tone? (Yes/No)
+5. Suggestions for improving flirting, humor, or personalization.
+
+Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
+
+After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria.
+
+
+`;
+
+      async function analyzeText() {
+        const inputText = document.getElementById("inputText").value;
+        const resultDiv = document.getElementById("result");
+
+        if (!inputText) {
+          resultDiv.textContent = "Пожалуйста, введите текст для анализа.";
+          return;
+        }
+
+        resultDiv.textContent = "Анализируем...";
+
+        try {
+          const response = await fetch(MISTRAL_API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${MISTRAL_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "pixtral-12b-2409", // Используйте подходящую модель
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: inputText },
+              ],
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const analysis = data.choices[0].message.content;
+
+          // Извлечение общей оценки из анализа (предполагается, что она указана в конце)
+          const scoreMatch = analysis.match(/Общая оценка: (\d+)/);
+          const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+
+          let result = analysis + "\n\n";
+          if (score > 60) {
+            result +=
+              "Общий результат: Хорошо! Текст соответствует большинству критериев.";
+          } else {
+            result +=
+              "Общий результат: Требуется улучшение. Обратите внимание на предложения по улучшению.";
+          }
+
+          resultDiv.textContent = result;
+        } catch (error) {
+          resultDiv.textContent = `Произошла ошибка при анализе: ${error.message}`;
+        }
+      }
+    </script>
+  </body>
+</html>
