@@ -139,13 +139,13 @@ The main thing is not to whine, do not write banal and do not try to write adver
 Analyze the text according to the following criteria:
 1. To what extent is flirting used? (Score from 0 to 10).
 2. Is there humor (Yes/No).
-3. Are there personalized details? (Yes/No)
+3. Are there personalized details/live details? (Yes/No)
 4. Is the letter written in a positive tone? (Yes/No)
 5. Suggestions for improving flirting, humor, or personalization.
 
 Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
 
-After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria.
+After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict.
 
 
 `;
@@ -163,7 +163,10 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
           resultDiv.innerHTML = "Text is too short";
           return;
         }
-
+        if (inputText.length > 2000) {
+          resultDiv.innerHTML = "Text is too long";
+          return;
+        }
         resultDiv.innerHTML = "Analyzing...";
 
         try {
@@ -174,7 +177,7 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
               Authorization: `Bearer ${MISTRAL_API_KEY}`,
             },
             body: JSON.stringify({
-              model: "open-mixtral-8x22b",
+              model: "pixtral-12b-2409",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: inputText },
