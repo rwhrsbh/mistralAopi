@@ -138,9 +138,9 @@ The main thing is not to whine, do not write banal and do not try to write adver
 
 Analyze the text according to the following criteria do not output weight:
 1. To what extent is flirting used? (Score from 0 to 10). 
-2. Is there humor (Yes/No). Weight:5
-3. Are there personalized details/live details which shows her personality really clear? (Yes/No) 
-4. Is the letter written in a positive tone? (Yes/No) 
+2. Is there humor (Yes/No).
+3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10). 
+4. Is the letter written in a positive tone? (Score from 0 to 5).
 5. Is there Uppercase on sentences? (Yes/No) 
 6. Is it AI generated? (Yes/No) 
 7. Suggestions for improving flirting, humor, or personalization.
@@ -210,7 +210,7 @@ You should output result score as rounded amount/100  example 20/100
 
           const scoreMatchAll = [
             ...analysis.matchAll(
-              /(?:Final Score|Total Score|Overall Score|Score)?\s*:?\s*(\d+(?:\.\d+)?)\/100/g
+              /(?:Final Score:|Total Score:|Overall Score:|Score:)?\s*?\s*(\d+(?:\.\d+)?)\/100/g
             ),
           ];
           const score = scoreMatchAll.length
