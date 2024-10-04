@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Анализ текста с Mistral API</title>
+
+    <title>Dream Analizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -44,18 +46,18 @@
   </head>
   <body>
     <div class="container">
-      <h1>Анализ текста с Mistral API</h1>
+      <h1>Dream Analizer</h1>
       <textarea
         id="inputText"
-        placeholder="Введите текст для анализа"
+        placeholder="Enter the text to be analyzed"
       ></textarea>
-      <button onclick="analyzeText()">Анализировать</button>
+      <button onclick="analyzeText()">Analyze</button>
       <div id="result"></div>
     </div>
 
     <script>
-      const MISTRAL_API_KEY = "Se54d1vc2Tjd0cj9syrjCYNd5rHYFzj3"; // Замените на ваш API-ключ
-      const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"; // Замените на актуальный URL API, если он изменится
+      const MISTRAL_API_KEY = "Se54d1vc2Tjd0cj9syrjCYNd5rHYFzj3";
+      const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
 
       const systemPrompt = `A newsletter is an appeal to our target audience, and the target audience is usually a bit sad and boring characters. Accordingly, to get answers we need to ALWAYS do newsletters with FLIRT, humor and DETAILS.
         I ask you to memorize this as a mantra and repeat to yourself every single day that this is what you need to write about.
@@ -153,11 +155,16 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
         const resultDiv = document.getElementById("result");
 
         if (!inputText) {
-          resultDiv.textContent = "Пожалуйста, введите текст для анализа.";
+          resultDiv.innerHTML = "Please enter valid text";
           return;
         }
 
-        resultDiv.textContent = "Анализируем...";
+        if (inputText.length < 200) {
+          resultDiv.innerHTML = "Text is too short";
+          return;
+        }
+
+        resultDiv.innerHTML = "Analyzing...";
 
         try {
           const response = await fetch(MISTRAL_API_URL, {
@@ -167,7 +174,7 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
               Authorization: `Bearer ${MISTRAL_API_KEY}`,
             },
             body: JSON.stringify({
-              model: "pixtral-12b-2409", // Используйте подходящую модель
+              model: "open-mixtral-8x22b",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: inputText },
@@ -182,22 +189,27 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
           const data = await response.json();
           const analysis = data.choices[0].message.content;
 
-          // Извлечение общей оценки из анализа (предполагается, что она указана в конце)
-          const scoreMatch = analysis.match(/Overall Rating: (\d+)/);
+          const scoreMatch = analysis.match(
+            /(?:Total Score|Overall Score|Score)?\s*:?\s*(\d+)\/100/
+          );
           const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
 
-          let result = analysis + "\n\n";
+          console.log(score);
+
+          const analysisHtml = marked.parse(analysis);
+
+          let result = analysisHtml;
           if (score > 60) {
-            result +=
-              "Общий результат: Хорошо! Текст соответствует большинству критериев.";
+            preMessage =
+              "<p><strong>Overall result:</strong> Good! The text meets most of the criteria.</p>";
           } else {
-            result +=
-              "Общий результат: Требуется улучшение. Обратите внимание на предложения по улучшению.";
+            preMessage =
+              "<p><strong>Overall result:</strong> Improvement required. Note suggestions for improvement.</p>";
           }
 
-          resultDiv.textContent = result;
+          resultDiv.innerHTML = preMessage + result;
         } catch (error) {
-          resultDiv.textContent = `Произошла ошибка при анализе: ${error.message}`;
+          resultDiv.innerHTML = `There was an error in the analysis: ${error.message}`;
         }
       }
     </script>
