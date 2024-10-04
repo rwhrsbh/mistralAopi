@@ -183,7 +183,7 @@ After analyzing, give an overall rating to the text on a scale of 0 to 100, wher
           const analysis = data.choices[0].message.content;
 
           // Извлечение общей оценки из анализа (предполагается, что она указана в конце)
-          const scoreMatch = analysis.match(/Общая оценка: (\d+)/);
+          const scoreMatch = analysis.match(/Overall Rating: (\d+)/);
           const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
 
           let result = analysis + "\n\n";
