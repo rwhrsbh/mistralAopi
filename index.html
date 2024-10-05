@@ -7,6 +7,92 @@
     <title>Dream Analyzer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <style>
+      @keyframes flashy {
+        0% {
+          background-color: rgb(115, 255, 0);
+          transform: scale(1);
+        }
+        25% {
+          background-color: yellow;
+          transform: scale(1.1) rotate(5deg);
+        }
+        50% {
+          background-color: green;
+          transform: scale(0.9) rotate(-5deg);
+        }
+        75% {
+          background-color: blue;
+          transform: scale(1.1) rotate(5deg);
+        }
+        100% {
+          background-color: rgb(255, 208, 0);
+          transform: scale(1);
+        }
+      }
+
+      @keyframes flashySad {
+        0% {
+          background-color: rgb(255, 94, 0);
+          transform: scale(1);
+        }
+        25% {
+          background-color: rgb(255, 0, 0);
+          transform: scale(1.1) rotate(5deg);
+        }
+        50% {
+          background-color: rgb(196, 127, 0);
+          transform: scale(0.9) rotate(-5deg);
+        }
+        75% {
+          background-color: rgb(248, 112, 112);
+          transform: scale(1.1) rotate(5deg);
+        }
+        100% {
+          background-color: rgb(128, 50, 50);
+          transform: scale(1);
+        }
+      }
+
+      .flashy-popup {
+        position: fixed;
+        top: 50%;
+        left: 33%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        animation: flashy 1s infinite;
+        display: none;
+      }
+
+      .flashy-popup p {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin: 0;
+      }
+      .flashy-popupSad {
+        position: fixed;
+        top: 50%;
+        left: 33%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        animation: flashySad 1s infinite;
+        display: none;
+      }
+
+      .flashy-popupSad p {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin: 0;
+      }
       body {
         font-family: Arial, sans-serif;
         line-height: 1.6;
@@ -81,6 +167,12 @@
 
       <button onclick="analyzeText()">Analyze</button>
       <div id="result"></div>
+    </div>
+    <div id="flashyPopup" class="flashy-popup">
+      <p id="popupContent"></p>
+    </div>
+    <div id="flashyPopupSad" class="flashy-popupSad">
+      <p id="popupContentSad"></p>
     </div>
 
     <script>
@@ -784,34 +876,89 @@ Analyze the text according to the following criteria do not output weight:
               body: JSON.stringify({
                 model: "pixtral-12b-2409",
                 messages: messages,
+                stream: true, // Enable streaming
               }),
             });
+
             if (!mistralResponse.ok) {
               throw new Error(`HTTP error! status: ${mistralResponse.status}`);
             }
 
-            const mistralData = await mistralResponse.json();
-            const analysis = mistralData.choices[0].message.content;
+            const reader = mistralResponse.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedText = "";
 
-            const scoreMatchAll = [
-              ...analysis.matchAll(
-                /(?:Final Score:|Total Score:|Overall Score:|Score:)?\s*?(\d+(?:\.\d+)?)\s*?\/\s*?100/g
-              ),
-            ];
-            const score = scoreMatchAll.length
-              ? parseFloat(scoreMatchAll[scoreMatchAll.length - 1][1])
-              : 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
 
-            let resultHtml = marked.parse(analysis);
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split("\n");
+
+              for (const line of lines) {
+                if (line.startsWith("data: ") && line !== "data: [DONE]") {
+                  try {
+                    const jsonData = JSON.parse(line.slice(6));
+                    const content = jsonData.choices[0].delta.content;
+                    if (content) {
+                      accumulatedText += content;
+                      resultDiv.innerHTML = marked.parse(accumulatedText);
+                    }
+                  } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                    console.log("Problematic line:", line);
+                    continue;
+                  }
+                }
+              }
+            }
+
+            // Final processing of the accumulated text
+            const scoreMatch = accumulatedText.match(
+              /(?:Final Score:|Total Score:|Overall Score:|Score:)?\s*?(\d+(?:\.\d+)?)\s*?\/\s*?100/
+            );
+            const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+
+            let resultHtml = marked.parse(accumulatedText);
+            function showFlashyPopup(message, duration) {
+              const popup = document.getElementById("flashyPopup");
+              const content = document.getElementById("popupContent");
+              content.innerHTML = message;
+              popup.style.display = "block";
+
+              setTimeout(() => {
+                popup.style.display = "none";
+              }, duration);
+            }
+            function showFlashyPopupSad(message, duration) {
+              const popup = document.getElementById("flashyPopupSad");
+              const content = document.getElementById("popupContentSad");
+              content.innerHTML = message;
+              popup.style.display = "block";
+
+              setTimeout(() => {
+                popup.style.display = "none";
+              }, duration);
+            }
 
             if (score > 65) {
               resultHtml =
                 `<p><strong>Overall result: ${score}%</strong> Good! The text meets most of the criteria.</p>` +
-                resultHtml;
+                resultHtml +
+                `<p><strong>Overall result: ${score}%</strong> Good! The text meets most of the criteria.</p>`;
+              showFlashyPopup(
+                `Congratulations! Your text meets all the criteria: ${score}%`,
+                5000
+              );
             } else {
               resultHtml =
                 `<p><strong>Overall result: ${score}%</strong> Improvement required. Note suggestions for improvement.</p>` +
-                resultHtml;
+                resultHtml +
+                `<p><strong>Overall result: ${score}%</strong> Improvement required. Note suggestions for improvement.</p>`;
+              showFlashyPopupSad(
+                `Your text doesn't meet all the criteria: ${score}%`,
+                5000
+              );
             }
 
             resultDiv.innerHTML = resultHtml;
