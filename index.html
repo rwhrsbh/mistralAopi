@@ -42,6 +42,26 @@
         margin-top: 20px;
         white-space: pre-wrap;
       }
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 16px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px top 50%;
+        background-size: 12px auto;
+      }
+      select:focus {
+        outline: none;
+        border-color: #4caf50;
+      }
     </style>
   </head>
   <body>
@@ -51,187 +71,753 @@
         id="inputText"
         placeholder="Enter the text to be analyzed"
       ></textarea>
+      <select id="modeInput">
+        <option value="Flirt">Flirt</option>
+        <option value="Inbox">Inbox</option>
+        <option value="Reply">Reply</option>
+        <option value="LetterBot">LetterBot</option>
+        <option value="ChatInvites">Chat Invites</option>
+      </select>
+
       <button onclick="analyzeText()">Analyze</button>
       <div id="result"></div>
     </div>
 
     <script>
+      document
+        .getElementById("modeInput")
+        .addEventListener("change", function () {
+          const modeValue = this.value;
+
+          if (modeValue === "Reply") {
+            if (!document.getElementById("inputText2")) {
+              const newTextarea = document.createElement("textarea");
+              newTextarea.id = "inputText2";
+              newTextarea.placeholder = "Enter the man's letter";
+              newTextarea.style.marginTop = "10px";
+
+              const container = document.querySelector(".container");
+              const firstTextarea = document.getElementById("inputText");
+              container.insertBefore(newTextarea, firstTextarea.nextSibling);
+            }
+          } else {
+            const secondTextarea = document.getElementById("inputText2");
+            if (secondTextarea) {
+              secondTextarea.remove();
+            }
+          }
+        });
+      let SystemPrompt;
+
       const MISTRAL_API_KEY = "Se54d1vc2Tjd0cj9syrjCYNd5rHYFzj3";
       const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+      const ChatTxt = `Analyze each chat invitation according to the following criteria:
 
-      const systemPrompt = `A newsletter is an appeal to our target audience, and the target audience is usually a bit sad and boring characters. Accordingly, to get answers we need to ALWAYS do newsletters with FLIRT, humor and DETAILS.
-        I ask you to memorize this as a mantra and repeat to yourself every single day that this is what you need to write about.
-By the way, for general education, in the USA it is not even customary to talk to each other about negativity and so on, so we try to always write with positivity, even if you write so badly.
+Engaging Opening (0-10 points)
 
-
-First let's start with flirting, how to write flirting not to violate the rules of the site. 
-- Do not add vulgar details in terms of "I will now do with you this and this and you with me this and that". 
-- be careful with photos, so that they do not show nipples and so on (swimsuits and the rest can be).
-
-Flirting should be reasonable.
-I will show examples of different beginnings of letters with a hint of flirting (further in them we translate the subject)
+Does the invitation start with an attention-grabbing, relevant opening?
+Is it tailored to the context of online dating?
 
 
+Personalization (0-10 points)
+
+Does the invitation include specific details that demonstrate genuine interest in the recipient?
+Are there references to the recipient's profile or shared interests?
 
 
-want your fingers be able not just to type honey))) Seriously)))
-I need you to grab my hand and DO SOMETHING SPECIAL for yourself... She just said to me that I look like a LESBIAN!
-Male's size is it a reason of female's hapiness?
-Big and hot STEAK or ME????
-Kisses, touches or even more??? Such a fruit like me deserves YOU?
+Urgent (0-10 points)
 
-Then from these ideas we continue to write newsletters and even if we wrote about fingers at the beginning of the letter, we can turn the topic to a variety of things!
-Such things should be done as often as possible, your letters will be better noticed and your chance to start a conversation with a potential regular will be much higher!!!!
-
-
-Now let's talk a little bit about the details in the letter and what is the main mistake of almost all beginning translators!!!!
-
-When you write a newsletter, you have to realize that it's been written 100 times before you and it needs to be wrapped in details that will make it unique and interesting. You can't just take the topic "what do you think about breast augmentation" and write that question directly. You need to add details, why are you asking it? What kind of answer do you need to get? And so on.
-
-Now let's take 2 examples, a typical newsletter of a newbie on this topic and a newsletter of an already experienced employee with a good balance.
+Is the tone trigger man to reply urgently?
 
 
 
+Conversation Starter (0-10 points)
 
-ROOKIE
-Dear, what do you think about breasts implants?
-So many girls nowadays are trying to increase their breasts and I think really a lot last time about it. Tell me please, would it looks good on me?
-What do you think if I will do it soon? Would you like me more?
-Your Ivanna
+Does the invitation include a question or topic that encourages a response?
+Is it thought-provoking or interesting?
 
 
-EXPERIENCED EMPLOYEE
-are implants really sexies than natural shape?
-My female friend Evgenia always says that she has no regrets because she made implants in
+Grammar and Clarity (0-5 points)
 
-her breasts, she got about 2 sizes extra and she got more confidence in herself and her husband STARTED TO SMILE FINALLY! HAHAHHAHAHAHA
-I'm not joking, after she did it, I've finally noticed that he is smiling on photos! Is it a
-
-coincidence??))))
-But what about you??
-
-Would you smile with me always or I need to change something? Your Ivanna
+Is the message well-written and easy to understand?
+Are there any glaring grammatical errors or confusing phrases?
 
 
-What's the difference:
-- The girl cited a situation from her life
-- She wrote with humor.
-- Added emoticons.
-- The beginning is better than the first newsletter, it's intriguing.
-- There are capslock on sentences that are worth paying attention to.
-- There are details, like the fact that the increase by 2 sizes, the fact that her husband started smiling afterwards, etc.
+AI Detection (Yes/No)
 
-Overall the newsletter looks 3 times more lively. It's better to write 1 of these than 100 first drafts, don't you agree?
+Assess whether the invitation appears to be AI-generated based on language patterns, lack of personalization, or generic content.
 
 
-The third is humor, this is the easiest, to come up with something funny just try to imagine how to laugh vulgar grandfather, this phrase itself is already funny, I personally add humor in newsletters very often and it makes the newsletter 100 times livelier.
 
-To understand how to make humor is easier then reduce the newsletters to the simplest and banal, questions from stupid publicks that were in 2014-2017, like daivinchik and so on.
+Scoring Guidelines:
 
-To make it even clearer, one phrase will help and the crown newsletter on the theme "you would wipe my ass if I broke both arms"
-All newsletters in this tone always come on hurrah, if not from the first time then from the second time for sure!
+Calculate the raw score using the following weights:
 
-The main thing is not to whine, do not write banal and do not try to write advertising, you need to be a person, you need to make a beautiful and interesting manner of communication, only so you can make a salary of 1000-1400 + dollars!
+Engaging Opening: (30 / 10) * points awarded
+Personalization: (20 / 10) * points awarded
+Urgent: (30 / 10) * points awarded
+Conversation Starter: (15 / 10) * points awarded
+Grammar and Clarity: (5 / 5) * points awarded
 
+
+Sum the weighted scores to get a total out of 100.
+If AI generation is detected, deduct 30 points from the total score.
+Present the final score as a rounded number out of 100 (e.g., 65/100).
+
+Analysis Output:
+For each invitation, provide:
+
+Brief comments on each criterion, highlighting strengths and areas for improvement.
+The score for each criterion.
+The raw total score (before AI deduction, if applicable).
+Whether AI generation was detected (Yes/No).
+The final score after any deductions.
+Suggestions for improving the invitation, focusing on:
+
+Creating a more engaging opening
+Enhancing personalization
+Adjusting the tone for better initial contact
+Improving the conversation starter
+Enhancing clarity and grammar
+Avoiding generic or AI-like content
+
+
+
+Remember:
+
+Personalization is crucial and should significantly impact the overall rating.
+Avoid overly sexual or inappropriate content in initial messages it would lead to a fine.
+
+Additional Guidelines for AI Analysis:
+
+Look for natural language and personality that feels genuinely human.
+Be wary of overly perfect grammar or structure, which can indicate AI generation.
+Assess whether the tone matches the context of casual online dating conversation.
+Value unique or unexpected elements that show real personality.
+Consider how likely the invitation is to actually engage the recipient and prompt a response.
+Remember that effective invitations in this context may be more direct or flirtatious than in formal communication.
+
+Here is list of good invitations as an example for understanding how to decide if invitation good or bad These are decent : m = [
+          "Do you often keep a woman waiting?)",
+          "If I ask you, will you wear my dress?",
+          "Do you often have a cup of hot coffee in the morning?",
+          "How do you feel about displays of affection in public places?",
+          "Will you go with me into the world of passion?)",
+          "ARE YOU AGAINST WOMEN WITHOUT CHILDREN?",
+          "I want to smell your scent... in bed. on the pillows. mmm!",
+          "Do you have a domestic cat or a wild tigress by your side?",
+          "do you warm my soul? my body? my lips? ",
+          "ARE YOU HIDING WHERE YOU LIVE?",
+          "Is it too stupid to have a pillow fight to end a date?",
+          "WOMEN WHO HAVE A CHILD get on your blacklist?",
+          "You want to see how I CHARGE?",
+          "I could sleep on your couch like a cat for a few days)?",
+          "If the apocalypse comes, can I hide in your bunker?",
+          "SHOCKER! YOU HAVE A GUEST COUCH IN YOUR HOUSE?!",
+          "How many meetings have you had this month?",
+          "Okay, tell me when you'll get back to me. Next year.????.",
+          "What will you promise if a woman comes up to you?",
+          "Do you like it better when a girl wears pants or skirts????",
+          "LADY posing for a magazine cover is a bad job?",
+          "What do you do if a lady has WIDE legs?",
+          "Does a girl need to have her breasts enlarged, if nature didn't give it to her?",
+          "I have such sweet lips.... do you want to try it?",
+          "You think it's very vulgar????? red lipstick on your lips",
+          "YOU WANT TO SEE ME NOW?????? Tomorrow???? Always ??? ",
+          "Is it normal for a man to control his woman's outfits?",
+          "Is it heaven or hell to live in the same house with you?",
+          "How do you feel about manipulative women?",
+          "How do you feel about having a child in your relationship?",
+          "How do you feel about tongue kissing?",
+          "I won't have to fight you at night for a blanket?)))",
+          "Have you thought about installing video cameras in the house?",
+          "1 chat, 1 letter, 1 date, does that work?",
+          "Why are you still single?",
+          "what is your favorite thing to do when you're bored?",
+          "Would you like to see the sunrise with me by your side???",
+          "Is this really what you wanted to see, and will it be followed by your answer???",
+          "WHY DO MEN LAUGH AT ME WHEN I TELL THEM HOW I FEEL??",
+          "A SENSUAL AND UNDERSTANDING RELATIONSHIP, OR CAN'T I EXPECT THAT FROM YOU??",
+          "Can our eyes meet in the near future???",
+          "I can only hope you've written your profile info correctly. ",
+          "You can see my invitation to chat, right?? Should I wait for you right now???",
+          "Is a video chat date something you'd like to do right now??? Should I wait for you right now, or am I just gonna sit here alone???",
+          "beauty or inner peace? what is more important for you when meeting a girl?",
+          "how can you leave your business alone for at least a day and achieve balance in your life????",
+          "how do you find love and not stumble into a toxic relationship??",
+          "you only look at 18 year old girls and my age repels your attention????",
+          "Is tonight's date night open? Or what else would you call it?",
+          "HOW DO YOU FEEL ABOUT A GIRL WHO'S SUCCESSFUL IN BUSINESS? AND WHAT IS SUCCESS TO YOU?",
+          "CAN YOU TELL ME WHAT TIME YOU'LL BE FREE?",
+          "Do you have a car? Will you try to come in it?",
+          "Is the city in your profile true? Are you really there?",
+          "Do you think if a girl can provide for herself and her man, it's a good thing?",
+          "do you see this check mark in my profile✅?",
+          "men here treat girls like toys with no feelings?",
+          "Do I have to record a video of me holding up two fingers to prove to you that I'm real? ",
+          "What time do you plan to walk to church on this feast day?",
+          "Are you familiar with the world-famous place called the green sign café?",
+          "Could you take care of my flower if I can't??",
+          "WHAT PLACE DO I HAVE TO BE IN AN HOUR TO SEE YOUR FACE?",
+          "IS THERE ANY OTHER WAY TO PROVE TO YOU THAT THIS ISN'T A GAME?",
+          "Are you tired of spending your evenings alone, too?",
+          "Baby, did you come in the chat room? Why am I chatting and you're not responding?",
+          "WHAT ARE THE CHANCES THAT AT THE END OF THE MONTH IT'LL BE JUST THE TWO OF US TOGETHER?",
+          "What do you have to do to make the girl you're chatting with worthy of the title 'wife'?? ",
+          "Have you seen what they've added to the chat room?!",
+          "Do you know where the key to happiness is? Do you want me to tell you the secret?",
+          "CAN I TRY TO GIVE YOU TONIGHT THE LOVE YOU'VE BEEN LOOKING FOR?",
+          "IN THE LAND OF SILENCE, YOU'D BE KING, WOULDN'T YOU?",
+          "WHAT WOULD YOU DO IF YOU WERE FACE TO FACE WITH A GIRL?",
+          "YOU DIDN'T TAKE THAT LAST STEP JUST MOMENTS AWAY FROM YOUR GOAL?",
+          "DID YOU EVER BELIEVE THAT DREAMS CAN COME TRUE?",
+          "ARE YOU GONNA BE FREE TODAY? OR DO I HAVE TO WASTE ANOTHER DAY?",
+          "IF A GIRL WAS BEING TRICKED, WOULD YOU INTERVENE? ",
+          "DO YOU THINK OUR DATE COULD BE CONSIDERED AN ACCIDENT OR WAS IT PLANNED BY FATE?",
+          "HAVE YOU EVER BELIEVED IN LOVE AT FIRST SIGHT?",
+          "YOU STILL HAVEN'T REALIZED THAT YOU ARE THE NUMBER 1 MAN ON DREAM SINGLES?",
+          "IS IT BETTER TO COME AND SEE THE PLOTS IN PERSON, OR CAN I TRUST THE PHOTOS ON THE INTERNET?",
+          "WHAT AUTHORITIES DEAL WITH REAL ESTATE ISSUES? ",
+          "You must have a lot of groupies chasing you, or am I wrong?) ",
+          "Am I really that boring? Why are you avoiding me?",
+          "Do you think the color red would suit me?",
+          "Have you heard about the premium chatting here?!?",
+          "It's urgent!!! we have to solve this right now!!! when can we meet?!? ",
+          "I bet you like to communicate with your voice more than you like to chat on the internet, am I right?",
+          "Will your credits run out if you chat with me for two minutes????",
+          "how do you get an insurance discount in your town?",
+          "How long are you gonna hide from me?? ",
+          "How much longer do I have to take the initiative to see you???",
+          "IS MAKING GIRLS HAPPIER YOUR JOB? 😍 ",
+          "WHEN YOU'RE AROUND A GIRL, YOU JUST DON'T CARE ABOUT HER??",
+          "IS IT TRUE THAT THERE'S AN OFF-SITE CONTACT FEATURE???",
+          "ARE YOU AFRAID OF GETTING HURT AGAIN?",
+          "DO YOU REALLY LIKE BEING ALONE THAT MUCH??",
+          "AM I RIGHT IN ASSUMING THAT I SHOULDN'T EXPECT TO CELEBRATE WITH YOU TONIGHT???",
+          "DO YOU ALREADY HAVE A DATE IN MIND FOR YOUR SPECIAL DAY???",
+          "I NEED TO KNOW RIGHT NOW WHAT YOU WANT ME TO WEAR ON A FIRST DATE.",
+          "WILL OUR LIPS MEET IN THAT SWEET KISS? ",
+          "WILL YOU LET ME HUG YOU THE FIRST TIME WE MEET?",
+        ],"
+`;
+      const InboxTxt = `Since our site specializes in the Adult niche or to put it simply we work in the field of
+we can conclude that from time to time we will come across men who
+who want to chat, in simple terms, pornographers.
+They are here to talk about their fantasies and so on. There are sites that
+specialize only in this kind of chatting, like OnlyFans.
+On our site there are about 20-40% of such men, how many depends on the temperament of the
+of the operator and the beauty of the profile.
+Top employees always conduct correspondence in the “Flirt” mode, make responses in this style
+and write newsletters in this style to attract the serious and the vulgar at once.
+This is a very important phrase that you need to remember, I'll say between the lines, but the more
+flirtatious, positive in your mailings, the more loyal men are to you.
+Closer to the point, what to do if a man wrote us a letter with vulgarity?
+The site only allows us to write explicit letters to our favorites, men who have not been
+corresponded with, our “online” men should not receive such letters.
+It's even easier to reply to a man, we can slur whatever we want and talk about anything
+anything. If a man writes us a porn letter, we need to answer him the same way and ask him
+a couple more questions on a topic he or she is interested in, maybe attach a good photo as well.
+New employees are often confused about the best way to write and that they are
+shy to do it, but that goes away, it's just as much a part of the job as any other.
+as any other part of the job. It's especially important to realize that these men are much more likely to write letters
+and much quicker to respond because we get them hot.
+1
+Now we need to talk about how to work with vulgarity and how to twist it in the right direction to get maximum results.
+to maximize results.
+To do this we need to understand the framework.
+- In online mailings (new men) - can not vulgarity in any form, but a light flirtation
+will do.
+- On mailing lists inbox (favorites) - by permission of the administrator, but flirting is always allowed.
+- In replies - you can vulgarize in any way and always, as long as the client is satisfied.
+Newsletters on inbox.
+“My swimsuit is really tight, do you want to see how small it is on me?”
+“I bought red panties but I don't have anyone to wear them for, can I show them to you?”
+“I've never been in the shower with anyone, I feel stupid writing this to you, should I take the
+the phone with you now?”
+The difference is in the details and clarification, we write on inboxes more directly about it.
+
+
+Bottom line.
+The vulgar are our rich clients who can write a lot. They're part of the job and they can be
+sometimes turn them into regulars and serious correspondence.
+In replies to a man, we can vulgarize as much as we like.
+Flirting - it is better to use always and be a positive, open and even frivolous
+girl, as for these men the world through rose-colored glasses and for them it is the norm!
+
+Vulgar letter is good in this case
 
 
 
 Analyze the text according to the following criteria do not output weight:
-1. To what extent is flirting used? (Score from 0 to 10). 
-2. Is there humor (Yes/No).
-3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10). 
-4. Is the letter written in a positive tone? (Score from 0 to 5).
-5. Is there Uppercase on sentences? (Yes/No) 
-6. Is it AI generated? (Yes/No) 
-7. Suggestions for improving flirting, humor, or personalization.
+      1. Is there an letter properly filed regarding the system prompt rules? (Score from 0 to 10).
+      2. Whether the letter is promising for a male response, based on the rules in the system message (Score from 0 to 10).
+      3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10).
+      4. Does the letter trigger man to reply (Score from 0 to 10).
+      5. Is there vulgar meaning or flirting that would arose man? (Score from 0 to 10).
+      6. Is it AI generated? (Yes/No)
+      7. Suggestions for improving promising, trigger, or personalization or vulgar or avoiding AI.
 
 
 
 
-Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
+      Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
 
-After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. you decide if it's personalized or no by the example of EXPERIENCED EMPLOYEE which is 100% personalized
-YOU SHOULD MAKE A DECISION If it's Ai generated and IF you detected it, you should deduct 30 from users score
-You should calculate final score out of 100 using weights without deduction 
-Weight
-Flirting (max. 10 points) → (40 / 10) * result which user got out of 10
-Humor (max. 5 points) → (5 / 10) * result which user got out of 5
-Personalization (max. 10 points) → (45 / 10) * result which user got out of 10
-Positivity (max. 5 points) → (5 / 10) * result which user got out of 5
-Upper case (max. 5 points) → (5 / 10) * result which user got out of 5
-AI → -30 (if “yes”), 0 (if “no”)
-and only then YOU SHOULD deduct from the final score if THERE AI DETECTED 
-You should output result score as rounded amount/100  example 20/100
+      After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. you decide if it's personalized or no.
+      YOU SHOULD MAKE A DECISION If it's Ai generated and IF you detected it, you should deduct 30 from users score
+      You should calculate final score out of 100 using weights without deduction
+      Weight
+      Proper Letter (max. 10 points) → (20 / 10) * result which user got out of 10
+      Is letter promising (max. 10 points) → (20 / 10) * result which user got out of 10
+      Personalization (max. 10 points) → (20 / 10) * result which user got out of 10
+      Trigger (max. 10 points) → (20 / 10) * result which user got out of 10
+      Vulgar/Flirt (max. 10 points) → (20 / 10) * result which user got out of 10
+      AI → -30 (if “yes”), 0 (if “no”)
+      and only then YOU SHOULD deduct from the final score if THERE AI DETECTED
+      You should output result score as rounded amount/100  example 20/100`;
+      const ReplyTxt = `We can talk forever about how to answer letters, what to write and so on, but there is no sense in it. In this text I will highlight only the main points that you need to know as a mantra for men to send back letters. Be sure to talk to a man as a person, if you do not like something about him - then tell him about it (wisely), it on the contrary ignites interest. Do everything as a real girl would do Need to make compliments, but only not banal "you're handsome" and so on. We see an old car in his picture, look at the model of the car and say that he has great taste. That kind of thing is more memorable than the fact that he's handsome. Grandfather in 70 years old realizes that his best and beautiful years are gone, do not deceive so openly :) One of the most important things, a man in any case needs a perspective, you need to keep the history of the meeting so that in the future the man saw that this correspondence will go to the real level! 
+And in reality, 80% of men on the site are afraid to meet! The answer to the man should be on EVERY question, and the dialog should always be continued, but not with questions "how was your day", and questions on the topic. Writes a man for the fact that he is now drawing drawings for the titanic - write him questions about the titanic. 
+Correspondence with 99% of men on the site stands on 3 big elephants that should be added to every letter, it is: meeting, flirting, tired of the site Bottom line: make our answers interesting, touch on the topics of flirting and meeting, answer every question and ask leading questions in response, this is the key to the fact that your regulars will stay with you. Now let's talk about the work with meeting men. The site is against the fact that we fool men and say that we will be tomorrow, for such things you can get a fine. The management of Drim can be understood, if everyone said that they would be tomorrow, there would be no men left on the site. But what is the algorithm of actions when a man writes about the meeting? If wrote metchnik there are 3 basic rules: 1) Do not give him an instant refusal (I can not meet, I have a problem, I do not know), we need to say "yes, I want and very much, but....." and after but we do a "pad", the thing we need to do to see him, the better and not banal "pad" the better. 2) Demonstrate interest in the meeting, ask him a flurry of questions that need a girl to meet him! Need to make it clear that the meeting is more important to you than to him! 3) Never call specific dates, remember, you can not say: "I will definitely be at your place on August 23rd" "I will come next week" "Next weekend I will be in Miami at your place" Need to say: "I think I can be at your place already in August" "I am finishing something and will be with you" "I have to tell you in a couple of days news about our meeting" Now about the pad to the questionnaire. 
+This pad should be not banal, no one you should not be sick, no problems banal with documents should not be and so on. We look first of all at the questionnaire. 
+
+Basic rules:
+1. Do not refuse immediately and categorically (I can't, we don't know each other that well, etc.).
+
+2. demonstrate your interest in the meeting, make it clear that you also want it.
+
+3. do not say specifics (dates, time, plans)
+
+If it is a long correspondence and the man is already talking about the meeting directly, then support him in his plans, offer several options for what you can do during these meetings (go to the dolphinarium, visit an unusual restaurant, fly in a hot air balloon, etc.). But don't say that you 100% will, after a while of such discussions you can come up with some pity story. For example, grandma has suspicions of a serious illness and has to be with her and undergo an examination, or (forget this phrase! men do not believe in it anymore)
+
+she's being sent on a job to another branch in some backwater.
+she has not yet decided to tell her parents and needs time to do so (for young girls)
+there is a turbulent situation in the country and the girl is very worried about the safety of the man (especially relevant for girls from Russia or Donbass, you can say that she will try to come to him herself)
+she is not feeling well (poisoned by something, or a strong flu).
+But you can talk about this only after the man sees your interest, otherwise you risk losing him. Dose the information. It is not necessary to tell all the details, let the man is also worried and waiting, let it be as realistic as possible. The more emotions, the better. So you will not get confused in your story and will be able to postpone the meeting for more than one month.
+
+
+
+If a man writes to you for the first time and leaves his number and address
+then you need to do the same thing. If it is a letter, then you should reply as soon as possible, because most likely he writes this message to many girls in the hope that at least someone will agree to meet. For example, you can write that the girl works not far from his place of residence, so he feels that they have more opportunities to meet. Then you need to ask more about him, about where he would like to visit in the city, what he has already seen, how he likes to spend his time... then find out how long he will be in the city, and say that she is now for example at a conference (on a business trip) and will return shortly before his departure. If you say that she will be busy all the time, then most likely the man will not continue to communicate, you need to give him hope that the meeting will take place. And then it will be impossible to just stay late and meet, but it is necessary to tell the man how sorry the girl is about it and how much she is upset... You can tell him how she planned this meeting, etc.
+
+
+Remember that very often men are loyal to the fact that at the moment the girl can not meet him. The main thing is not to panic and do not scare the man categorical refusal. Create intrigue, the illusion of meeting. It should be interesting to communicate with the girl. Also if you are sure that the man will understand correctly, you can write that she had a negative experience in past relationships and now she does not want to rush.
+
+Many men subconsciously do not want to meet, so if you give them a reasonable and realistic reason why she can not meet him at the moment, there is a high probability that communication will continue on the site. He will continue to idealize the girl, which won't happen if he is disappointed in her when he meets her, as not many girls are willing to work well at meeting.
+
+
+!!!A man must always get an answer to all his questions in a letter and see the
+the girl's interest; you must read where he lives, what he likes to ask a question about what the
+the weather in Chicago or what movie he made when he was directing. And also show him
+the prospect that you want to see him in real life.!!!
+
+- Your newsletters and replies should match, if a girl is going to Paris in 2 weeks, then
+try to write more about it. If she's in a bad mood, then it's bad in the replies and in the
+in the mailings, but try to always be positive, of course.
+- Always add a little flirtation to replies and newsletters and try to act “lighthearted”,
+a hardened man, a veteran of this life, certainly not here to be burdened
+with incomprehensible things, he is already looking for fun and calm, sometimes of course “brainteasers”, but far not
+always, you have to keep a balance.
+- You need to understand who your profile is, what he does, what he is looking for. With that, you'll get
+a lot more ideas for mailings and profits.
+
+A few examples. Girl Francesca 28 years old, lives in Venesuella, pad - afraid that in the U.S. beat immigrants and therefore afraid to come to a man without guarantees Girl Ira 40 years old, lives in Kiev, pad - she has a court with her husband about the child and until it is not finished, will not be able to meet! Here are such pads are needed! Bottom line: meeting afraid - do not need to, about this even mailing lists should be written to fuel the interest of men! And do it constantly, but without promising anything immediately!
+
+
+ Analyze the text according to the following criteria do not output weight:
+      1. Is there an answer properly filed regarding the system prompt rules? (Score from 0 to 10).
+      2. Is there compliments (Score from 0 to 5).
+      3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10).
+      4. Is the letter written in a positive tone? (Score from 0 to 5).
+      5. Is there Capslock on sentences? (Score from 0 to 5).
+      6. Is it AI generated? (Yes/No)
+      7. Suggestions for improving meeting, compliments, or personalization or avoiding AI.
+
+
+
+
+      Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
+
+      After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. you decide if it's personalized or no 
+      YOU SHOULD MAKE A DECISION If it's Ai generated and IF you detected it, you should deduct 30 from users score
+      You should calculate final score out of 100 using weights without deduction
+      Weight
+      Proper Answer (max. 10 points) → (40 / 10) * result which user got out of 10
+      Compliments (max. 5 points) → (5 / 5) * result which user got out of 5
+      Personalization (max. 10 points) → (45 / 10) * result which user got out of 10
+      Positivity (max. 5 points) → (5 / 5) * result which user got out of 5
+      Capslock (max. 5 points if Capslock used to highlight or impact on interest is good is 5) → (5 / 5) * result which user got out of 5
+      AI → -30 (if “yes”), 0 (if “no”)
+      and only then YOU SHOULD deduct from the final score if THERE AI DETECTED
+      You should output result score as rounded amount/100  example 20/100
+
 
 `;
+      const LetterBotTxt = `In general, you need to realize that for a good balance on the form, you need 5-10 regulars or
+or just receive 1 letter per hour during the day, and it is already 550$ salary per month. If you run
+2 of these profiles, that's 1100$. But on the top questionnaires on which employees with experience,
+the results are always higher. But you and I are beginners and we need to focus on how to get these
+regulars.
+It all starts with mailings, and retention with the same mailings but with good responses.
+First rule: “In online mailings, we lure a man to the first response with any kind of
+provocation, and in mailings on inboxes we write always positive, use flirting and write about
+about the girl and her life.”
+You have to have a personality, we don't write the first newsletter about “do you like books” and the
+“I like to walk in the park”, why would that be of interest to our client?
+Do you think men at 50+ think about that? Of course not.
+Our clients need to see the prospect of meeting a girl, that she's a real person,
+see real flirting, intelligent questions, read about her life in general, and he expects that
+you're going to replace that online relationship that he's missing.
+The second rule: “You need to know who your girlfriend works for, what she likes, when she goes to the
+showers in the morning and what she needs in a man to bang his brains out sometimes, simply put.
+you have to get into character to know how to write a newsletter.”
+All of these ideas that we'll be putting on our character you can get from your
+administrator
+
+
+You just have to do the norm on mailings and write provocative letters on the
+LetterBot or the online newsletter. WITH THE MOST FUCKED-UP,
+ENTICING BEGINNING. This category of mailing is crucial for one simple reason.
+simple reason. In a few days of good mailings, you can build up a large list of
+of reids (email opens) and men will start getting MORE emails from you. On this
+we will already increase the chance of finding new regulars.
+TOTAL: A good number of letterbots and a GREAT BEGINNING IN LETTERBOTH.
+FOR A MAN TO OPEN A LETTER
+
+
+Now we will talk about the topics for these newsletters and it is necessary to realize that it is better not to
+write newsletters directly on this topic, from each individual idea you can make 10-20 child ideas and this is the best way to do it.
+10-20 child ideas and that's the best way.
+
+1) Doubts in a man.
+Do not forget that the girl in any case the main role, she must doubt the
+man, if you will immediately flatter, say “I love can not”, it will take away the interest in the
+at the root.
+Examples:
+- Are you really here for a serious relationship?
+- Would you have written me first if I hadn't?
+- Are you ready to leave this site with me or are you already attached to it?
+- Are you real?
+- Do you have a real name and data on this site?
+- What happens if this site closes? How will we communicate?
+2) Photography Newsletters.
+We look through the girl's gallery and look for interesting photos that make sense or
+just that caught your eye, then just a little thinking and think of what kind of
+question you can add to them.
+Examples:
+- (a photo somewhere in another country) have you been here? What about a vacation together?
+- (photo in dress) what do you think of me in this dress? You're not gonna give me
+even a compliment?
+- Do you have a car? Honestly, it drives me crazy when I see a man
+a man drive.
+- (photo with a smile) Is this the photo I took for you today? Maybe you could
+could you send me a picture of yourself finally?
+3) Provocations.
+Any provocative mailings are best on new men and usually with a
+good beginning of the letter (first sentence) they can bring more responses. В
+mailings of experienced employees, provocations are at least 40% of the total number of mailings
+Examples:
+- You won't freak out if I want a meeting within a week?
+- Can I be sure you're not just an “internet hero”? All men are always
+very smart with words.
+- You want to know when I lied to you?
+- Tell me honestly, you're not on this site to meet me, are you?
+- You're just here to look at pictures of pretty girls in bikinis?
+- Are you afraid of open-minded women like me?
+- Are you a real man or not?
+4) Flirting
+Flirting should be written properly and every flirting mailing we put only after
+administrator's approval, it's a very subtle topic, but it's a very popular one. Remember?
+Examples:
+- (waist photo) you have no idea how I feel when I picture
+your hands on my waist.
+- Do you have pictures you can only show me?
+- How can we test our attraction to each other if we're on this site?
+
+- I'm having so much trouble picking out a bikini, can you help me?
+- I want you to see me now, guess where I am.
+5) Encounter.
+Meeting themes are something you should use daily, even if a man is the most
+the latest slut, he's still hoping for a meeting (or just imagining it in his
+in his head.) We have to show a man perspective every day.
+Immediately a small remark, everyone should have “his” story of meeting on the form, it is
+may be a direct meeting, may be on vacation, may be after a girlfriend
+gives birth because she needs help, maybe after the stupid boss stops
+at work and so on and so forth.
+The main thing is never to say in the mailings “I will definitely come next week”, “I
+WANT TO MEET YOU NOW”, as well as, you should not call clear and always use ‘if’.
+use “if.”
+Examples:
+- Where do you see us meeting?
+- Can I be sure you're not a scammer and that you're serious?
+- What if we meet with you and my friend so that I feel safe?
+safe?
+- What are your plans for the next month, maybe I can be your plan?
+- Is it still possible to get refugee status in your country?
+- Do you see us meeting as just a date or moving in together right away?
+- And a million other document-related topics to make it easier to understand,
+put yourself in the shoes of your profile and ask the question, “How do I even get there
+to this stranger?”
+
+6) Appearance.
+Doubting your appearance to get a compliment from a man also
+work
+Examples:
+- Do you want me to enlarge your lips?
+- My friend had her breasts enlarged, and now I don't know how to live with my size.
+size.
+- What about the color of my hair? Maybe blondes drive you crazier than me.
+я?
+And so on.
+
+
+Analyze the text according to the following criteria do not output weight:
+      1. Is there an letter properly filed regarding the system prompt rules? (Score from 0 to 10).
+      2. Whether the letter is promising for a male response, based on the rules in the system message (Score from 0 to 10).
+      3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10).
+      4. Does the letter have a provocative beginning any tone, which trigger man to reply (Score from 0 to 10).
+      5. Is there Capslock on sentences? (Score from 0 to 5).
+      6. Is it AI generated? (Yes/No)
+      7. Suggestions for improving meeting, compliments, or personalization or avoiding AI.
+
+
+
+
+      Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
+
+      After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. you decide if it's personalized or no 
+      YOU SHOULD MAKE A DECISION If it's Ai generated and IF you detected it, you should deduct 30 from users score
+      You should calculate final score out of 100 using weights without deduction
+      Weight
+      Proper Answer (max. 10 points) → (20 / 10) * result which user got out of 10
+      Is letter promising (max. 10 points) → (30 / 10) * result which user got out of 10
+      Personalization (max. 10 points) → (15 / 10) * result which user got out of 10
+      Provocative beginning any tone (max. 10 points) → (30 / 10) * result which user got out of 10
+      Capslock (max. 5 points if Capslock used to highlight or impact on interest is good is 5) → (5 / 5) * result which user got out of 5
+      AI → -30 (if “yes”), 0 (if “no”)
+      and only then YOU SHOULD deduct from the final score if THERE AI DETECTED
+      You should output result score as rounded amount/100  example 20/100`;
+      const FlirtTxt = `A newsletter is an appeal to our target audience, and the target audience is usually a bit sad and boring characters. Accordingly, to get answers we need to ALWAYS do newsletters with FLIRT, humor and DETAILS.
+              I ask you to memorize this as a mantra and repeat to yourself every single day that this is what you need to write about.
+      By the way, for general education, in the USA it is not even customary to talk to each other about negativity and so on, so we try to always write with positivity, even if you write so badly.
+
+
+      First let's start with flirting, how to write flirting not to violate the rules of the site.
+      - Do not add vulgar details in terms of "I will now do with you this and this and you with me this and that".
+      - be careful with photos, so that they do not show nipples and so on (swimsuits and the rest can be).
+
+      Flirting should be reasonable.
+      I will show examples of different beginnings of letters with a hint of flirting (further in them we translate the subject)
+
+
+
+
+      want your fingers be able not just to type honey))) Seriously)))
+      I need you to grab my hand and DO SOMETHING SPECIAL for yourself... She just said to me that I look like a LESBIAN!
+      Male's size is it a reason of female's hapiness?
+      Big and hot STEAK or ME????
+      Kisses, touches or even more??? Such a fruit like me deserves YOU?
+
+      Then from these ideas we continue to write newsletters and even if we wrote about fingers at the beginning of the letter, we can turn the topic to a variety of things!
+      Such things should be done as often as possible, your letters will be better noticed and your chance to start a conversation with a potential regular will be much higher!!!!
+
+
+      Now let's talk a little bit about the details in the letter and what is the main mistake of almost all beginning translators!!!!
+
+      When you write a newsletter, you have to realize that it's been written 100 times before you and it needs to be wrapped in details that will make it unique and interesting. You can't just take the topic "what do you think about breast augmentation" and write that question directly. You need to add details, why are you asking it? What kind of answer do you need to get? And so on.
+
+      Now let's take 2 examples, a typical newsletter of a newbie on this topic and a newsletter of an already experienced employee with a good balance.
+
+
+
+
+      ROOKIE
+      Dear, what do you think about breasts implants?
+      So many girls nowadays are trying to increase their breasts and I think really a lot last time about it. Tell me please, would it looks good on me?
+      What do you think if I will do it soon? Would you like me more?
+      Your Ivanna
+
+
+      EXPERIENCED EMPLOYEE
+      are implants really sexies than natural shape?
+      My female friend Evgenia always says that she has no regrets because she made implants in
+
+      her breasts, she got about 2 sizes extra and she got more confidence in herself and her husband STARTED TO SMILE FINALLY! HAHAHHAHAHAHA
+      I'm not joking, after she did it, I've finally noticed that he is smiling on photos! Is it a
+
+      coincidence??))))
+      But what about you??
+
+      Would you smile with me always or I need to change something? Your Ivanna
+
+
+      What's the difference:
+      - The girl cited a situation from her life
+      - She wrote with humor.
+      - Added emoticons.
+      - The beginning is better than the first newsletter, it's intriguing.
+      - There are capslock on sentences that are worth paying attention to.
+      - There are details, like the fact that the increase by 2 sizes, the fact that her husband started smiling afterwards, etc.
+
+      Overall the newsletter looks 3 times more lively. It's better to write 1 of these than 100 first drafts, don't you agree?
+
+
+      The third is humor, this is the easiest, to come up with something funny just try to imagine how to laugh vulgar grandfather, this phrase itself is already funny, I personally add humor in newsletters very often and it makes the newsletter 100 times livelier.
+
+      To understand how to make humor is easier then reduce the newsletters to the simplest and banal, questions from stupid publicks that were in 2014-2017, like daivinchik and so on.
+
+      To make it even clearer, one phrase will help and the crown newsletter on the theme "you would wipe my ass if I broke both arms"
+      All newsletters in this tone always come on hurrah, if not from the first time then from the second time for sure!
+
+      The main thing is not to whine, do not write banal and do not try to write advertising, you need to be a person, you need to make a beautiful and interesting manner of communication, only so you can make a salary of 1000-1400 + dollars!
+
+
+
+
+      Analyze the text according to the following criteria do not output weight:
+      1. To what extent is flirting used? (Score from 0 to 10).
+      2. Is there humor (Score from 0 to 5).
+      3. Are there personalized details/live details which shows her personality really clear? (Score from 0 to 10).
+      4. Is the letter written in a positive tone? (Score from 0 to 5).
+      5. Is there Capslock on sentences? (Score from 0 to 5 if Capslock used to highlight or impact on interest is 5).
+      6. Is it AI generated? (Yes/No)
+      7. Suggestions for improving flirting, humor, or personalization or avoiding AI.
+
+
+
+
+      Remember that flirting should be reasonable, without vulgar details. Humor should be appropriate and light. Details should make the text unique and interesting.
+
+      After analyzing, give an overall rating to the text on a scale of 0 to 100, where 100 is a perfect text that meets all the criteria. personalized details/live details are very important their weight should be high. and the rule should be very strict. it should have huge impact. you decide if it's personalized or no by the example of EXPERIENCED EMPLOYEE which is 100% personalized
+      YOU SHOULD MAKE A DECISION If it's Ai generated and IF you detected it, you should deduct 30 from users score
+      You should calculate final score out of 100 using weights without deduction
+      Weight
+      Flirting (max. 10 points) → (40 / 10) * result which user got out of 10
+      Humor (max. 5 points) → (5 / 5) * result which user got out of 5
+      Personalization (max. 10 points) → (45 / 10) * result which user got out of 10
+      Positivity (max. 5 points) → (5 / 5) * result which user got out of 5
+      Capslock (max. 5 points if Capslock used to highlight or impact on interest is good is 5) → (5 / 5) * result which user got out of 5
+      AI → -30 (if “yes”), 0 (if “no”)
+      and only then YOU SHOULD deduct from the final score if THERE AI DETECTED
+      You should output result score as rounded amount/100  example 20/100
+
+      `;
 
       async function analyzeText() {
         const inputText = document.getElementById("inputText").value;
+        const mansMessageElement = document.getElementById("inputText2");
         const resultDiv = document.getElementById("result");
+        const mode = document.querySelector("#modeInput").value;
 
         if (!inputText) {
           resultDiv.innerHTML = "Please enter valid text";
           return;
         }
 
-        if (inputText.length < 200) {
-          resultDiv.innerHTML = "Text is too short";
+        if (inputText.length < 20 || inputText.length > 5000) {
+          resultDiv.innerHTML = "Text length is either too short or too long.";
           return;
         }
-        if (inputText.length > 5000) {
-          resultDiv.innerHTML = "Text is too long";
-          return;
+
+        let mansMessage = null;
+        if (mode === "Reply") {
+          if (mansMessageElement) {
+            mansMessage = mansMessageElement.value;
+            if (
+              !mansMessage ||
+              mansMessage.length < 5 ||
+              mansMessage.length > 5000
+            ) {
+              resultDiv.innerHTML = "Man's letter is invalid.";
+              return;
+            }
+          } else {
+            resultDiv.innerHTML = "Man's letter field is missing.";
+            return;
+          }
         }
+        console.log(`Mode selected: ${mode}`);
+        const normalizedMode = mode.trim().toLowerCase();
+
+        let SystemPrompt;
         resultDiv.innerHTML = "Analyzing...";
 
-        try {
-          // Mistral API Analysis
-          const mistralResponse = await fetch(MISTRAL_API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${MISTRAL_API_KEY}`,
-            },
-            body: JSON.stringify({
-              model: "pixtral-12b-2409",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: inputText },
-              ],
-            }),
-          });
+        switch (mode) {
+          case "Flirt":
+            SystemPrompt = FlirtTxt;
+            break;
+          case "Inbox":
+            SystemPrompt = InboxTxt;
+            break;
+          case "LetterBot":
+            SystemPrompt = LetterBotTxt;
+            break;
+          case "Reply":
+            SystemPrompt = ReplyTxt;
+            break;
+          case "ChatInvites":
+            SystemPrompt = ChatTxt;
+            break;
+          default:
+            resultDiv.innerHTML = "Unknown analysis mode";
+            return;
+        }
+        if (SystemPrompt) {
+          try {
+            const messages = [
+              { role: "system", content: SystemPrompt },
+              { role: "user", content: inputText },
+            ];
 
-          if (!mistralResponse.ok) {
-            throw new Error(`HTTP error! status: ${mistralResponse.status}`);
+            if (mode === "Reply" && mansMessage) {
+              messages.push({
+                role: "system",
+                content: `Here is man's letter which user is going to reply to  check it but do not analize it according to the criteria "${mansMessage}" And here is below the letter user is going to send as a reply, you need to decide on this does it meet all the creteria?`,
+              });
+            }
+
+            const mistralResponse = await fetch(MISTRAL_API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${MISTRAL_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "pixtral-12b-2409",
+                messages: messages,
+              }),
+            });
+            if (!mistralResponse.ok) {
+              throw new Error(`HTTP error! status: ${mistralResponse.status}`);
+            }
+
+            const mistralData = await mistralResponse.json();
+            const analysis = mistralData.choices[0].message.content;
+
+            const scoreMatchAll = [
+              ...analysis.matchAll(
+                /(?:Final Score:|Total Score:|Overall Score:|Score:)?\s*?(\d+(?:\.\d+)?)\s*?\/\s*?100/g
+              ),
+            ];
+            const score = scoreMatchAll.length
+              ? parseFloat(scoreMatchAll[scoreMatchAll.length - 1][1])
+              : 0;
+
+            let resultHtml = marked.parse(analysis);
+
+            if (score > 65) {
+              resultHtml =
+                `<p><strong>Overall result: ${score}%</strong> Good! The text meets most of the criteria.</p>` +
+                resultHtml;
+            } else {
+              resultHtml =
+                `<p><strong>Overall result: ${score}%</strong> Improvement required. Note suggestions for improvement.</p>` +
+                resultHtml;
+            }
+
+            resultDiv.innerHTML = resultHtml;
+          } catch (error) {
+            resultDiv.innerHTML = `There was an error in the analysis: ${error.message}`;
           }
-
-          const mistralData = await mistralResponse.json();
-          const analysis = mistralData.choices[0].message.content;
-
-          const scoreMatchAll = [
-            ...analysis.matchAll(
-              /(?:Final Score:|Total Score:|Overall Score:|Score:)?\s*?\s*(\d+(?:\.\d+)?)\/100/g
-            ),
-          ];
-          const score = scoreMatchAll.length
-            ? parseFloat(scoreMatchAll[scoreMatchAll.length - 1][1])
-            : 0;
-
-          let resultHtml = marked.parse(analysis);
-
-          if (score > 70) {
-            resultHtml =
-              `<p><strong>Overall result: ${score}%</strong> Good! The text meets most of the criteria.</p>` +
-              resultHtml;
-          } else {
-            resultHtml =
-              `<p><strong>Overall result: ${score}%</strong> Improvement required. Note suggestions for improvement.</p>` +
-              resultHtml;
-          }
-
-          resultDiv.innerHTML = resultHtml;
-        } catch (error) {
-          resultDiv.innerHTML = `There was an error in the analysis: ${error.message}`;
         }
       }
     </script>
