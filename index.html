@@ -171,6 +171,18 @@
         <option value="LetterBot">LetterBot</option>
         <option value="ChatInvites">Chat Invites</option>
       </select>
+      <div>
+        <select id="Model" aria-placeholder="Model">
+          <option value="pixtral-12b-2409">Pix Model</option>
+          <option value="open-mistral-7b">7B Model</option>
+          <option value="open-mixtral-8x22b">8X22B Model</option>
+          <option value="open-codestral-mamba">Code Model</option>
+          <option value="open-mistral-nemo">Nemo Model</option>
+          <option value="open-mixtral-8x7b">
+            8X7B Model (Not working as expected)
+          </option>
+        </select>
+      </div>
 
       <button onclick="analyzeText()">Analyze</button>
       <div id="result"></div>
@@ -208,7 +220,7 @@
           }
         });
       let SystemPrompt;
-
+      let mModel;
       const MISTRAL_API_KEY = "Se54d1vc2Tjd0cj9syrjCYNd5rHYFzj3";
       const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
       const ChatTxt = `Analyze each chat invitation according to the following criteria:
@@ -807,6 +819,7 @@ Analyze the text according to the following criteria do not output weight:
         const mansMessageElement = document.getElementById("inputText2");
         const resultDiv = document.getElementById("result");
         const mode = document.querySelector("#modeInput").value;
+        const Model = document.querySelector("#Model").value;
 
         if (!inputText) {
           resultDiv.innerHTML = "Please enter valid text";
@@ -836,10 +849,35 @@ Analyze the text according to the following criteria do not output weight:
           }
         }
         console.log(`Mode selected: ${mode}`);
+
         const normalizedMode = mode.trim().toLowerCase();
 
         let SystemPrompt;
         resultDiv.innerHTML = "Analyzing...";
+
+        switch (Model) {
+          case "pixtral-12b-2409":
+            mModel = Model;
+            break;
+          case "open-mistral-7b":
+            mModel = Model;
+            break;
+          case "open-mixtral-8x7b":
+            mModel = Model;
+            break;
+          case "open-mixtral-8x22b":
+            mModel = Model;
+            break;
+          case "open-codestral-mamba":
+            mModel = Model;
+            break;
+          case "open-mistral-nemo":
+            mModel = Model;
+            break;
+          default:
+            resultDiv.innerHTML = "Unknown analysis mode";
+            return;
+        }
 
         switch (mode) {
           case "Flirt":
@@ -874,7 +912,7 @@ Analyze the text according to the following criteria do not output weight:
                 content: `Here is man's letter which user is going to reply to  check it but do not analize it according to the criteria "${mansMessage}" And here is below the letter user is going to send as a reply, you need to decide on this does it meet all the creteria?`,
               });
             }
-
+            console.log(`Model selected: ${mModel}`);
             const mistralResponse = await fetch(MISTRAL_API_URL, {
               method: "POST",
               headers: {
@@ -882,7 +920,7 @@ Analyze the text according to the following criteria do not output weight:
                 Authorization: `Bearer ${MISTRAL_API_KEY}`,
               },
               body: JSON.stringify({
-                model: "pixtral-12b-2409",
+                model: mModel,
                 messages: messages,
                 stream: true, // Enable streaming
               }),
